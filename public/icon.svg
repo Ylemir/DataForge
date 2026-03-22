@@ -1,0 +1,66 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 定义渐变和阴影 -->
+  <defs>
+    <!-- 背景：深邃的蓝紫渐变 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4338ca" /> <!-- Indigo 700 -->
+      <stop offset="100%" stop-color="#1e1b4b" /> <!-- Indigo 950 -->
+    </linearGradient>
+    
+    <!-- 齿轮：活力的锻造橙 -->
+    <linearGradient id="gearGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f97316" /> <!-- Orange 500 -->
+      <stop offset="100%" stop-color="#c2410c" /> <!-- Orange 700 -->
+    </linearGradient>
+
+    <!-- 投影滤镜，增加立体感 -->
+    <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- 1. 图标底座：圆角矩形 (Squircle) -->
+  <rect x="32" y="32" width="448" height="448" rx="90" fill="url(#bgGradient)" />
+
+  <!-- 2. 数据文件 (Document) -->
+  <g transform="translate(116, 80)" filter="url(#dropShadow)">
+    <!-- 纸张主体 -->
+    <path d="M0,0 L236,0 L276,40 L276,340 L0,340 Z" fill="#f8fafc" />
+    <!-- 纸张折角 -->
+    <path d="M236,0 L236,40 L276,40 Z" fill="#cbd5e1" />
+
+    <!-- 内容：JSON/代码部分 (左侧蓝色块) -->
+    <rect x="30" y="50" width="90" height="18" rx="4" fill="#3b82f6" />
+    <rect x="30" y="85" width="180" height="10" rx="3" fill="#94a3b8" />
+    <rect x="30" y="110" width="160" height="10" rx="3" fill="#94a3b8" />
+    <rect x="30" y="135" width="170" height="10" rx="3" fill="#94a3b8" />
+
+    <!-- 内容：表格/CSV部分 (下方灰色块) -->
+    <rect x="30" y="190" width="60" height="12" rx="3" fill="#64748b" />
+    <!-- 表格行 -->
+    <rect x="30" y="220" width="200" height="6" rx="2" fill="#e2e8f0" />
+    <rect x="30" y="238" width="200" height="6" rx="2" fill="#e2e8f0" />
+    <rect x="30" y="256" width="180" height="6" rx="2" fill="#e2e8f0" />
+    <!-- 表格列分隔线 -->
+    <rect x="100" y="205" width="2" height="80" fill="#cbd5e1" />
+    <rect x="170" y="205" width="2" height="80" fill="#cbd5e1" />
+  </g>
+
+  <!-- 3. 齿轮 (The Forge/Tool) -->
+  <!-- 放置在右下角，象征处理和转换 -->
+  <g transform="translate(390, 390)" filter="url(#dropShadow)">
+    <!-- 齿轮主体 -->
+    <circle r="85" fill="url(#gearGradient)" />
+    <!-- 齿轮齿 (利用旋转的矩形模拟) -->
+    <g fill="#f97316">
+      <rect x="-18" y="-95" width="36" height="190" rx="4" />
+      <rect x="-18" y="-95" width="36" height="190" rx="4" transform="rotate(45)" />
+      <rect x="-18" y="-95" width="36" height="190" rx="4" transform="rotate(90)" />
+      <rect x="-18" y="-95" width="36" height="190" rx="4" transform="rotate(135)" />
+    </g>
+    <!-- 齿轮内圈孔 (颜色匹配背景，体现重叠感) -->
+    <circle r="45" fill="#1e1b4b" />
+    <!-- 齿轮高光 (增加金属质感) -->
+    <circle cx="-20" cy="-20" r="15" fill="#ffffff" fill-opacity="0.2" />
+  </g>
+</svg>
