@@ -71,9 +71,9 @@ export function QueryPanel({
   const isFavorite = favorites.includes(query)
 
   return (
-    <div className={cn('flex flex-col gap-4', className)}>
+    <div className={cn('flex flex-col gap-3 md:gap-4', className)}>
       {/* Query input */}
-      <div className="space-y-2">
+      <div className="space-y-1.5 md:space-y-2">
         <label className="text-sm font-medium text-muted-foreground">路径查询</label>
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -105,9 +105,9 @@ export function QueryPanel({
               )}
             </button>
           </div>
-          <Button size="sm" onClick={onExecute} className="h-9 gap-1.5">
+          <Button size="sm" onClick={onExecute} className="h-9 gap-1.5 px-3">
             <Play className="h-3.5 w-3.5" />
-            执行
+            <span className="hidden sm:inline">执行</span>
           </Button>
         </div>
       </div>
@@ -121,14 +121,14 @@ export function QueryPanel({
           <TabsTrigger value="edit" className="text-xs">编辑</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="examples" className="mt-3">
-          <ScrollArea className="h-[180px]">
+        <TabsContent value="examples" className="mt-2 md:mt-3">
+          <ScrollArea className="h-[160px] md:h-[180px]">
             <div className="space-y-1">
               {queryExamples.map((example, i) => (
                 <button
                   key={i}
                   onClick={() => onQueryChange(example.query)}
-                  className="flex w-full flex-col items-start gap-0.5 rounded-md px-3 py-2 text-left transition-colors hover:bg-muted"
+                  className="flex w-full flex-col items-start gap-0.5 rounded-md px-3 py-2 text-left transition-colors hover:bg-muted min-h-[40px]"
                 >
                   <code className="font-mono text-sm text-primary">{example.query}</code>
                   <span className="text-xs text-muted-foreground">{example.description}</span>
@@ -138,22 +138,22 @@ export function QueryPanel({
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="history" className="mt-3">
-          <div className="mb-2 flex items-center justify-between">
+        <TabsContent value="history" className="mt-2 md:mt-3">
+          <div className="mb-1.5 md:mb-2 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
               {history.length} 条记录
             </span>
             {history.length > 0 && (
               <button
                 onClick={onClearHistory}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive py-1"
               >
                 <Trash2 className="h-3 w-3" />
                 清空
               </button>
             )}
           </div>
-          <ScrollArea className="h-[150px]">
+          <ScrollArea className="h-[130px] md:h-[150px]">
             <div className="space-y-1">
               {history.length === 0 ? (
                 <p className="py-4 text-center text-sm text-muted-foreground">
@@ -164,7 +164,7 @@ export function QueryPanel({
                   <button
                     key={entry.id}
                     onClick={() => onQueryChange(entry.query)}
-                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left transition-colors hover:bg-muted"
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left transition-colors hover:bg-muted min-h-[40px]"
                   >
                     <Clock className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
                     <code className="flex-1 truncate font-mono text-sm">{entry.query}</code>
@@ -178,8 +178,8 @@ export function QueryPanel({
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="favorites" className="mt-3">
-          <ScrollArea className="h-[180px]">
+        <TabsContent value="favorites" className="mt-2 md:mt-3">
+          <ScrollArea className="h-[160px] md:h-[180px]">
             <div className="space-y-1">
               {favorites.length === 0 ? (
                 <p className="py-4 text-center text-sm text-muted-foreground">
@@ -189,7 +189,7 @@ export function QueryPanel({
                 favorites.map((fav, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-2 rounded-md px-3 py-2 transition-colors hover:bg-muted"
+                    className="flex items-center gap-2 rounded-md px-3 py-2 transition-colors hover:bg-muted min-h-[40px]"
                   >
                     <button
                       onClick={() => onQueryChange(fav)}
@@ -199,7 +199,7 @@ export function QueryPanel({
                     </button>
                     <button
                       onClick={() => onRemoveFavorite(fav)}
-                      className="text-muted-foreground hover:text-destructive"
+                      className="text-muted-foreground hover:text-destructive p-1"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -210,9 +210,9 @@ export function QueryPanel({
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="edit" className="mt-3">
-          <div className="space-y-3">
-            <div className="space-y-1.5">
+        <TabsContent value="edit" className="mt-2 md:mt-3">
+          <div className="space-y-2.5 md:space-y-3">
+            <div className="space-y-1 md:space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">路径</label>
               <Input
                 value={editPath}
@@ -221,7 +221,7 @@ export function QueryPanel({
                 className="h-8 font-mono text-sm"
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1 md:space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">值 (JSON)</label>
               <Input
                 value={editValue}
@@ -239,7 +239,7 @@ export function QueryPanel({
                 disabled={!editPath || !editValue}
               >
                 <Plus className="h-3.5 w-3.5" />
-                添加/更新
+                <span className="hidden sm:inline">添加/更新</span>
               </Button>
               <Button
                 size="sm"
@@ -249,7 +249,7 @@ export function QueryPanel({
                 disabled={!editPath}
               >
                 <Trash2 className="h-3.5 w-3.5" />
-                删除
+                <span className="hidden sm:inline">删除</span>
               </Button>
             </div>
           </div>

@@ -64,7 +64,7 @@ export function CodeEditor({
         {/* Line numbers */}
         <div
           ref={lineNumbersRef}
-          className="flex-shrink-0 select-none overflow-hidden bg-muted/30 py-3 text-right text-muted-foreground"
+          className="hidden md:flex md:flex-col flex-shrink-0 select-none overflow-hidden bg-muted/30 py-3 text-right text-muted-foreground"
           style={{ width: '3rem' }}
         >
           {Array.from({ length: lineCount }, (_, i) => (
@@ -88,7 +88,7 @@ export function CodeEditor({
           placeholder={placeholder}
           spellCheck={false}
           className={cn(
-            'flex-1 resize-none bg-transparent p-3 leading-5 outline-none',
+            'flex-1 resize-none bg-transparent p-2 md:p-3 leading-5 md:leading-5 outline-none text-sm md:text-sm',
             'placeholder:text-muted-foreground/50',
             readOnly && 'cursor-default'
           )}

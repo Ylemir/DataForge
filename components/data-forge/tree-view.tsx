@@ -93,7 +93,7 @@ export function TreeView({ data, selectedPath, onSelectPath, onCopyPath, onCopyV
   return (
     <div className={cn('flex h-full min-h-0 flex-col', className)}>
       {/* Search */}
-      <div className="flex-shrink-0 border-b border-border p-3">
+      <div className="flex-shrink-0 border-b border-border p-2 md:p-3">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -111,17 +111,17 @@ export function TreeView({ data, selectedPath, onSelectPath, onCopyPath, onCopyV
             </button>
           )}
         </div>
-        <div className="mt-2 flex gap-2">
+        <div className="mt-1.5 flex gap-2">
           <button
             onClick={expandAll}
-            className="text-xs text-muted-foreground hover:text-foreground"
+            className="text-xs text-muted-foreground hover:text-foreground py-1"
           >
             展开全部
           </button>
           <span className="text-muted-foreground">|</span>
           <button
             onClick={collapseAll}
-            className="text-xs text-muted-foreground hover:text-foreground"
+            className="text-xs text-muted-foreground hover:text-foreground py-1"
           >
             折叠全部
           </button>
@@ -297,7 +297,7 @@ function TreeNodeComponent({
         onMouseLeave={() => setIsHovered(false)}
       >
         {editingPath === node.path ? (
-          <div className="flex items-center gap-1 flex-1 px-2 py-1" style={{ paddingLeft: `${level * 12 + 8}px` }}>
+          <div className="flex items-center gap-1 flex-1 px-2 py-1.5 md:py-1" style={{ paddingLeft: `${level * 12 + 8}px` }}>
             {/* Type icon */}
             {getTypeIcon()}
             {/* Key */}
@@ -308,7 +308,7 @@ function TreeNodeComponent({
               type="text"
               value={editValue}
               onChange={(e) => onEditValueChange(e.target.value)}
-              className="flex-1 h-6 px-2 text-sm border rounded bg-background"
+              className="flex-1 h-7 md:h-6 px-2 text-sm border rounded bg-background"
               autoFocus
               onBlur={onSaveEdit}
               onKeyDown={(e) => {
@@ -323,15 +323,15 @@ function TreeNodeComponent({
             />
             <button
               onClick={onSaveEdit}
-              className="h-6 w-6 flex items-center justify-center text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90"
+              className="h-7 w-7 md:h-6 md:w-6 flex items-center justify-center text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90"
             >
-              <Check className="h-3 w-3" />
+              <Check className="h-3.5 w-3.5 md:h-3 md:w-3" />
             </button>
             <button
               onClick={onCancelEdit}
-              className="h-6 w-6 flex items-center justify-center text-xs bg-muted text-muted-foreground rounded hover:bg-muted/90"
+              className="h-7 w-7 md:h-6 md:w-6 flex items-center justify-center text-xs bg-muted text-muted-foreground rounded hover:bg-muted/90"
             >
-              <X className="h-3 w-3" />
+              <X className="h-3.5 w-3.5 md:h-3 md:w-3" />
             </button>
           </div>
         ) : (
@@ -340,11 +340,11 @@ function TreeNodeComponent({
               if (hasChildren) onToggle(node.id)
               onSelect(node.path, node.value)
             }}
-            className="flex flex-1 items-center gap-1.5 px-2 py-1 text-left"
+            className="flex flex-1 items-center gap-1.5 px-2 py-1.5 md:py-1 text-left min-h-[36px] md:min-h-0"
             style={{ paddingLeft: `${level * 12 + 8}px` }}
           >
             {/* Expand/collapse icon */}
-            <span className="w-4 flex-shrink-0">
+            <span className="w-5 md:w-4 flex-shrink-0 flex items-center justify-center">
               {hasChildren ? (
                 isExpanded ? (
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -373,7 +373,7 @@ function TreeNodeComponent({
           <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <DropdownMenuTrigger asChild>
               <button
-                className="mr-2 flex h-6 w-6 items-center justify-center rounded hover:bg-muted"
+                className="mr-2 flex h-7 w-7 md:h-6 md:w-6 items-center justify-center rounded hover:bg-muted"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal className="h-4 w-4 text-muted-foreground" />

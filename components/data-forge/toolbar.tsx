@@ -78,23 +78,23 @@ export function Toolbar({
   const { setTheme } = useTheme()
 
   return (
-    <header className={cn('flex h-14 items-center justify-between border-b border-border bg-card px-4', className)}>
+    <header className={cn('flex h-14 items-center justify-between border-b border-border bg-card px-3 md:px-4', className)}>
       {/* Left: Logo and title */}
-      <div className="flex items-center gap-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <FileJson className="h-5 w-5" />
+      <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <FileJson className="h-4 w-4 md:h-5 md:w-5" />
         </div>
         <div>
-          <h1 className="text-lg font-semibold leading-none">DataForge</h1>
-          <p className="text-xs text-muted-foreground">多格式数据转换工具</p>
+          <h1 className="text-base md:text-lg font-semibold leading-none">DataForge</h1>
+          <p className="hidden sm:block text-xs text-muted-foreground">多格式数据转换工具</p>
         </div>
       </div>
 
       {/* Center: Format selector and actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 md:gap-2">
         {/* Format selector */}
         <Select value={format} onValueChange={(v) => onFormatChange(v as DataFormat)}>
-          <SelectTrigger className="h-9 w-28">
+          <SelectTrigger className="h-8 md:h-9 w-24 md:w-28 text-xs md:text-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -109,19 +109,18 @@ export function Toolbar({
           </SelectContent>
         </Select>
 
-        <div className="mx-2 h-6 w-px bg-border" />
+        <div className="hidden md:block mx-2 h-6 w-px bg-border" />
 
         {/* Import */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
-              size="sm"
-              className="h-9 gap-1.5"
+              size="icon-sm"
+              className="h-8 w-8 md:h-9 md:w-9"
               onClick={onImport}
             >
               <Upload className="h-4 w-4" />
-              导入
             </Button>
           </TooltipTrigger>
           <TooltipContent>导入文件</TooltipContent>
@@ -130,8 +129,8 @@ export function Toolbar({
         {/* Load sample */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-9">
-              示例数据
+            <Button variant="ghost" size="icon-sm" className="hidden md:flex h-9 w-9">
+              <FileText className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="center">
@@ -147,7 +146,7 @@ export function Toolbar({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <div className="mx-2 h-6 w-px bg-border" />
+        <div className="hidden md:block mx-2 h-6 w-px bg-border" />
 
         {/* Undo/Redo */}
         <Tooltip>
@@ -155,7 +154,7 @@ export function Toolbar({
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9"
+              className="hidden md:flex h-9 w-9"
               onClick={onUndo}
               disabled={!canUndo}
             >
@@ -170,7 +169,7 @@ export function Toolbar({
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9"
+              className="hidden md:flex h-9 w-9"
               onClick={onRedo}
               disabled={!canRedo}
             >
@@ -180,19 +179,18 @@ export function Toolbar({
           <TooltipContent>重做</TooltipContent>
         </Tooltip>
 
-        <div className="mx-2 h-6 w-px bg-border" />
+        <div className="hidden md:block mx-2 h-6 w-px bg-border" />
 
         {/* Format/Minify */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
-              size="sm"
-              className="h-9 gap-1.5"
+              size="icon-sm"
+              className="hidden md:flex h-9 w-9"
               onClick={onFormat}
             >
               <Wand2 className="h-4 w-4" />
-              格式化
             </Button>
           </TooltipTrigger>
           <TooltipContent>美化代码格式</TooltipContent>
@@ -202,12 +200,11 @@ export function Toolbar({
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
-              size="sm"
-              className="h-9 gap-1.5"
+              size="icon-sm"
+              className="hidden md:flex h-9 w-9"
               onClick={onMinify}
             >
               <Minimize2 className="h-4 w-4" />
-              压缩
             </Button>
           </TooltipTrigger>
           <TooltipContent>压缩为单行</TooltipContent>
@@ -215,12 +212,12 @@ export function Toolbar({
       </div>
 
       {/* Right: Theme and help */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5 md:gap-1">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-9 w-9 relative">
-              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9 relative">
+              <Sun className="h-4 w-4 md:h-[1.2rem] md:w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-4 w-4 md:h-[1.2rem] md:w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">切换主题</span>
             </Button>
           </DropdownMenuTrigger>
@@ -242,7 +239,7 @@ export function Toolbar({
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-9 w-9">
+            <Button variant="ghost" size="icon" className="hidden md:flex h-9 w-9">
               <HelpCircle className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -258,9 +255,9 @@ export function Toolbar({
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9" asChild>
               <a href="https://github.com" target="_blank" rel="noopener noreferrer">
-                <Github className="h-4 w-4" />
+                <Github className="h-3.5 w-3.5 md:h-4 md:w-4" />
               </a>
             </Button>
           </TooltipTrigger>

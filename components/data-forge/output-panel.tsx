@@ -95,7 +95,7 @@ export function OutputPanel({
   return (
     <div className={cn('flex h-full flex-col', className)}>
       <Tabs value={activeTab} onValueChange={onTabChange} className="flex h-full flex-col">
-        <div className="flex items-center justify-between border-b border-border px-4 py-2">
+        <div className="flex items-center justify-between border-b border-border px-2 md:px-4 py-2">
           <TabsList className="h-8">
             <TabsTrigger value="convert" className="text-xs gap-1.5">
               <ArrowRightLeft className="h-3.5 w-3.5" />
@@ -112,10 +112,10 @@ export function OutputPanel({
 
         <TabsContent value="convert" className="mt-0 flex flex-1 flex-col overflow-hidden">
           {/* Format selector and actions */}
-          <div className="flex items-center gap-2 border-b border-border px-4 py-2">
-            <span className="text-sm text-muted-foreground">转换为:</span>
+          <div className="flex items-center gap-1 md:gap-2 border-b border-border px-2 md:px-4 py-1.5 md:py-2">
+            <span className="text-xs md:text-sm text-muted-foreground">转换为:</span>
             <Select value={outputFormat} onValueChange={(v) => setOutputFormat(v as DataFormat)}>
-              <SelectTrigger className="h-8 w-24">
+              <SelectTrigger className="h-7 md:h-8 w-20 md:w-24 text-xs md:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -130,34 +130,34 @@ export function OutputPanel({
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 gap-1.5"
+              className="h-7 md:h-8 gap-1 px-2 md:px-3"
               onClick={() => copy(convertedOutput)}
             >
               {copied ? (
                 <>
                   <Check className="h-3.5 w-3.5 text-success" />
-                  已复制
+                  <span className="hidden sm:inline">已复制</span>
                 </>
               ) : (
                 <>
                   <Copy className="h-3.5 w-3.5" />
-                  复制
+                  <span className="hidden sm:inline">复制</span>
                 </>
               )}
             </Button>
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 gap-1.5"
+              className="h-7 md:h-8 gap-1 px-2 md:px-3"
               onClick={() => handleDownload(convertedOutput, outputFormat)}
             >
               <Download className="h-3.5 w-3.5" />
-              下载
+              <span className="hidden sm:inline">下载</span>
             </Button>
           </div>
 
           {/* Output */}
-          <div className="flex-1 overflow-hidden p-4">
+          <div className="flex-1 overflow-hidden p-2 md:p-4">
             <CodeEditor
               value={convertedOutput}
               onChange={() => {}}
@@ -169,22 +169,22 @@ export function OutputPanel({
         </TabsContent>
 
         <TabsContent value="query" className="mt-0 flex flex-1 flex-col overflow-hidden">
-          <div className="flex items-center justify-between border-b border-border px-4 py-2">
-            <span className="text-sm text-muted-foreground">
+          <div className="flex items-center justify-between border-b border-border px-2 md:px-4 py-1.5 md:py-2">
+            <span className="text-xs md:text-sm text-muted-foreground">
               {queryResult?.success ? '查询成功' : queryResult?.error ? '查询失败' : '等待查询'}
             </span>
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 gap-1.5"
+              className="h-7 md:h-8 gap-1 px-2 md:px-3"
               onClick={() => copy(queryOutput)}
               disabled={!queryOutput}
             >
               <Copy className="h-3.5 w-3.5" />
-              复制
+              <span className="hidden sm:inline">复制</span>
             </Button>
           </div>
-          <div className="flex-1 overflow-hidden p-4">
+          <div className="flex-1 overflow-hidden p-2 md:p-4">
             {queryResult ? (
               <CodeEditor
                 value={queryOutput}
@@ -203,11 +203,11 @@ export function OutputPanel({
         </TabsContent>
 
         <TabsContent value="selected" className="mt-0 flex flex-1 flex-col overflow-hidden">
-          <div className="flex items-center justify-between border-b border-border px-4 py-2">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">路径:</span>
+          <div className="flex items-center justify-between border-b border-border px-2 md:px-4 py-1.5 md:py-2">
+            <div className="flex items-center gap-1 md:gap-2">
+              <span className="text-xs md:text-sm text-muted-foreground">路径:</span>
               {selectedPath && (
-                <code className="rounded bg-muted px-2 py-0.5 font-mono text-xs">
+                <code className="rounded bg-muted px-1.5 md:px-2 py-0.5 font-mono text-xs max-w-[120px] md:max-w-none truncate">
                   {selectedPath}
                 </code>
               )}
@@ -215,15 +215,15 @@ export function OutputPanel({
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 gap-1.5"
+              className="h-7 md:h-8 gap-1 px-2 md:px-3"
               onClick={() => copy(selectedOutput)}
               disabled={!selectedOutput}
             >
               <Copy className="h-3.5 w-3.5" />
-              复制
+              <span className="hidden sm:inline">复制</span>
             </Button>
           </div>
-          <div className="flex-1 overflow-hidden p-4">
+          <div className="flex-1 overflow-hidden p-2 md:p-4">
             {selectedPath ? (
               <CodeEditor
                 value={selectedOutput}
@@ -234,7 +234,7 @@ export function OutputPanel({
               />
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                点击左侧树形导航中的节点查看详情
+                点击树形结构中的节点查看详情
               </div>
             )}
           </div>

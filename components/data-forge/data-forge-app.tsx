@@ -2,10 +2,11 @@
 
 import * as React from 'react'
 import { toast } from 'sonner'
-import { PanelLeftClose, PanelLeft } from 'lucide-react'
+import { PanelLeftClose, PanelLeft, Braces, Code, Table2 } from 'lucide-react'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Toolbar } from './toolbar'
 import { TreeView } from './tree-view'
 import { CodeEditor } from './code-editor'
@@ -14,6 +15,7 @@ import { OutputPanel } from './output-panel'
 import { parseContent, buildTree, queryData, stringifyData, putAtPath, deleteAtPath, detectFormat } from '@/lib/data-forge/parsers'
 import { sampleData } from '@/lib/data-forge/samples'
 import { useFormatter } from '@/hooks/use-formatter'
+import { useIsMobile } from '@/hooks/use-mobile'
 import type { DataFormat, TreeNode, HistoryEntry } from '@/lib/data-forge/types'
 import type { ImperativePanelHandle } from 'react-resizable-panels'
 
@@ -23,6 +25,12 @@ interface HistoryState {
 }
 
 export function DataForgeApp() {
+  const isMobile = useIsMobile()
+  const isMounted = isMobile !== undefined
+  
+  // Mobile tab state
+  const [mobileTab, setMobileTab] = React.useState('editor')
+
   // Editor state
   const [content, setContent] = React.useState(sampleData.json)
   const [format, setFormat] = React.useState<DataFormat>('json')
@@ -336,133 +344,233 @@ export function DataForgeApp() {
           onRedo={handleRedo}
         />
 
-        {/* Main content */}
-        <ResizablePanelGroup direction="horizontal" className="flex-1">
-          {/* Left panel: Tree view */}
-          <ResizablePanel 
-            ref={leftPanelRef}
-            defaultSize={20} 
-            minSize={15} 
-            maxSize={35}
-            collapsible
-            collapsedSize={0}
-            onCollapse={() => setIsLeftPanelCollapsed(true)}
-            onExpand={() => setIsLeftPanelCollapsed(false)}
-          >
-            <div className="flex h-full flex-col border-r border-border">
-              <div className="flex h-10 items-center justify-between border-b border-border px-4">
-                <h2 className="text-sm font-medium">数据结构</h2>
+        {isMounted && isMobile ? (
+          <div className="flex flex-1 flex-col min-h-0">
+            {/* Mobile tab bar */}
+            <div className="flex-shrink-0 border-b border-border px-2 py-1">
+              <Tabs value={mobileTab} onValueChange={setMobileTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-3 h-9">
+                  <TabsTrigger value="editor" className="gap-1.5 text-xs">
+                    <Code className="h-3.5 w-3.5" />
+                    编辑
+                  </TabsTrigger>
+                  <TabsTrigger value="tree" className="gap-1.5 text-xs">
+                    <Braces className="h-3.5 w-3.5" />
+                    结构
+                  </TabsTrigger>
+                  <TabsTrigger value="output" className="gap-1.5 text-xs">
+                    <Table2 className="h-3.5 w-3.5" />
+                    输出
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            {/* Mobile content */}
+            <div className="flex-1 min-h-0 overflow-hidden">
+              {mobileTab === 'editor' && (
+                <div className="flex h-full flex-col">
+                  <div className="flex-1 overflow-hidden">
+                    <div className="flex h-10 items-center border-b border-border px-4">
+                      <h2 className="text-sm font-medium">源数据</h2>
+                      <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                        {format.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="h-[calc(100%-2.5rem)] p-3">
+                      <CodeEditor
+                        value={content}
+                        onChange={handleContentChange}
+                        format={format}
+                        error={parseError}
+                        className="h-full"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0 border-t border-border p-3">
+                    <QueryPanel
+                      query={query}
+                      onQueryChange={setQuery}
+                      onExecute={handleExecuteQuery}
+                      history={history}
+                      favorites={favorites}
+                      onAddFavorite={handleAddFavorite}
+                      onRemoveFavorite={handleRemoveFavorite}
+                      onClearHistory={handleClearHistory}
+                      selectedPath={selectedPath}
+                      onPut={handlePut}
+                      onDelete={handleDelete}
+                      activeTab={queryPanelTab}
+                      onTabChange={setQueryPanelTab}
+                      editValue={editValue}
+                      onEditValueChange={setEditValue}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {mobileTab === 'tree' && (
+                <div className="flex h-full flex-col">
+                  <div className="flex h-10 items-center justify-between border-b border-border px-4">
+                    <h2 className="text-sm font-medium">数据结构</h2>
+                  </div>
+                  <TreeView
+                    data={treeData}
+                    selectedPath={selectedPath}
+                    onSelectPath={handleSelectPath}
+                    onEdit={(path, value) => {
+                      setSelectedPath(path)
+                      setSelectedValue(value)
+                      setQuery(path)
+                    }}
+                    onSave={handlePut}
+                    onDelete={handleDelete}
+                    className="flex-1 overflow-hidden"
+                  />
+                </div>
+              )}
+
+              {mobileTab === 'output' && (
+                <OutputPanel
+                  data={parsedData}
+                  sourceFormat={format}
+                  selectedPath={selectedPath}
+                  selectedValue={selectedValue}
+                  queryResult={queryResult}
+                  activeTab={outputTab}
+                  onTabChange={setOutputTab}
+                />
+              )}
+            </div>
+          </div>
+        ) : (
+          <ResizablePanelGroup direction="horizontal" className="flex-1">
+            {/* Left panel: Tree view */}
+            <ResizablePanel 
+              ref={leftPanelRef}
+              defaultSize={20} 
+              minSize={15} 
+              maxSize={35}
+              collapsible
+              collapsedSize={0}
+              onCollapse={() => setIsLeftPanelCollapsed(true)}
+              onExpand={() => setIsLeftPanelCollapsed(false)}
+            >
+              <div className="flex h-full flex-col border-r border-border">
+                <div className="flex h-10 items-center justify-between border-b border-border px-4">
+                  <h2 className="text-sm font-medium">数据结构</h2>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={toggleLeftPanel}
+                      >
+                        <PanelLeftClose className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">折叠面板</TooltipContent>
+                  </Tooltip>
+                </div>
+                <TreeView
+                  data={treeData}
+                  selectedPath={selectedPath}
+                  onSelectPath={handleSelectPath}
+                  onEdit={(path, value) => {
+                    setSelectedPath(path)
+                    setSelectedValue(value)
+                    setQuery(path)
+                  }}
+                  onSave={handlePut}
+                  onDelete={handleDelete}
+                  className="flex-1 overflow-hidden"
+                />
+              </div>
+            </ResizablePanel>
+
+            <ResizableHandle withHandle />
+            
+            {/* Collapsed panel toggle button */}
+            {isLeftPanelCollapsed && (
+              <div className="flex h-full items-start border-r border-border">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7"
+                      className="m-1 h-8 w-8"
                       onClick={toggleLeftPanel}
                     >
-                      <PanelLeftClose className="h-4 w-4" />
+                      <PanelLeft className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="right">折叠面板</TooltipContent>
+                  <TooltipContent side="right">展开数据结构面板</TooltipContent>
                 </Tooltip>
               </div>
-              <TreeView
-                data={treeData}
-                selectedPath={selectedPath}
-                onSelectPath={handleSelectPath}
-                onEdit={(path, value) => {
-                  setSelectedPath(path)
-                  setSelectedValue(value)
-                  setQuery(path)
-                }}
-                onSave={handlePut}
-                onDelete={handleDelete}
-                className="flex-1 overflow-hidden"
-              />
-            </div>
-          </ResizablePanel>
+            )}
 
-          <ResizableHandle withHandle />
-          
-          {/* Collapsed panel toggle button */}
-          {isLeftPanelCollapsed && (
-            <div className="flex h-full items-start border-r border-border">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="m-1 h-8 w-8"
-                    onClick={toggleLeftPanel}
-                  >
-                    <PanelLeft className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">展开数据结构面板</TooltipContent>
-              </Tooltip>
-            </div>
-          )}
-
-          {/* Center panel: Editor and query */}
-          <ResizablePanel defaultSize={40} minSize={30}>
-            <div className="flex h-full flex-col">
-              {/* Editor */}
-              <div className="flex-1 overflow-hidden border-b border-border">
-                <div className="flex h-10 items-center border-b border-border px-4">
-                  <h2 className="text-sm font-medium">源数据</h2>
-                  <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                    {format.toUpperCase()}
-                  </span>
+            {/* Center panel: Editor and query */}
+            <ResizablePanel defaultSize={40} minSize={30}>
+              <div className="flex h-full flex-col">
+                {/* Editor */}
+                <div className="flex-1 overflow-hidden border-b border-border">
+                  <div className="flex h-10 items-center border-b border-border px-4">
+                    <h2 className="text-sm font-medium">源数据</h2>
+                    <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                      {format.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="h-[calc(100%-2.5rem)] p-4">
+                    <CodeEditor
+                      value={content}
+                      onChange={handleContentChange}
+                      format={format}
+                      error={parseError}
+                      className="h-full"
+                    />
+                  </div>
                 </div>
-                <div className="h-[calc(100%-2.5rem)] p-4">
-                  <CodeEditor
-                    value={content}
-                    onChange={handleContentChange}
-                    format={format}
-                    error={parseError}
-                    className="h-full"
+
+                {/* Query panel */}
+                <div className="h-[320px] flex-shrink-0 p-4">
+                  <QueryPanel
+                    query={query}
+                    onQueryChange={setQuery}
+                    onExecute={handleExecuteQuery}
+                    history={history}
+                    favorites={favorites}
+                    onAddFavorite={handleAddFavorite}
+                    onRemoveFavorite={handleRemoveFavorite}
+                    onClearHistory={handleClearHistory}
+                    selectedPath={selectedPath}
+                    onPut={handlePut}
+                    onDelete={handleDelete}
+                    activeTab={queryPanelTab}
+                    onTabChange={setQueryPanelTab}
+                    editValue={editValue}
+                    onEditValueChange={setEditValue}
                   />
                 </div>
               </div>
+            </ResizablePanel>
 
-              {/* Query panel */}
-              <div className="h-[320px] flex-shrink-0 p-4">
-                <QueryPanel
-                  query={query}
-                  onQueryChange={setQuery}
-                  onExecute={handleExecuteQuery}
-                  history={history}
-                  favorites={favorites}
-                  onAddFavorite={handleAddFavorite}
-                  onRemoveFavorite={handleRemoveFavorite}
-                  onClearHistory={handleClearHistory}
-                  selectedPath={selectedPath}
-                  onPut={handlePut}
-                  onDelete={handleDelete}
-                  activeTab={queryPanelTab}
-                  onTabChange={setQueryPanelTab}
-                  editValue={editValue}
-                  onEditValueChange={setEditValue}
-                />
-              </div>
-            </div>
-          </ResizablePanel>
+            <ResizableHandle withHandle />
 
-          <ResizableHandle withHandle />
-
-          {/* Right panel: Output */}
-          <ResizablePanel defaultSize={40} minSize={25}>
-            <OutputPanel
-              data={parsedData}
-              sourceFormat={format}
-              selectedPath={selectedPath}
-              selectedValue={selectedValue}
-              queryResult={queryResult}
-              activeTab={outputTab}
-              onTabChange={setOutputTab}
-            />
-          </ResizablePanel>
-        </ResizablePanelGroup>
+            {/* Right panel: Output */}
+            <ResizablePanel defaultSize={40} minSize={25}>
+              <OutputPanel
+                data={parsedData}
+                sourceFormat={format}
+                selectedPath={selectedPath}
+                selectedValue={selectedValue}
+                queryResult={queryResult}
+                activeTab={outputTab}
+                onTabChange={setOutputTab}
+              />
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        )}
       </div>
     </TooltipProvider>
   )
