@@ -109,8 +109,6 @@ This document provides guidelines for agentic coding agents operating in the Dat
 - Keep dependencies updated to avoid known vulnerabilities.
 
 ## Existing Rules
-- No Cursor rules (`.cursor/rules/`, `.cursorrules`) found.
-- No Copilot instructions (`.github/copilot‑instructions.md`) found.
 - ESLint script exists but configuration may be missing; ensure ESLint is installed if linting is required.
 
 ## Project Structure

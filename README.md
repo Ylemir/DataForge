@@ -58,7 +58,7 @@
 
 ### 环境要求
 
-- Node.js 18+
+- Node.js 24+
 - pnpm（推荐）或 npm
 
 ### 安装
@@ -104,11 +104,10 @@ data-forge/
 │   │   ├── output-panel.tsx     # 输出面板
 │   │   └── toolbar.tsx          # 工具栏
 │   └── ui/                 # shadcn/ui 组件
-├── hooks/                  # 自定义 Hooks
-│   ├── use-clipboard.ts    # 剪贴板操作
-│   ├── use-formatter.ts    # 格式化操作
-│   ├── use-mobile.ts       # 移动端检测
-│   └── use-toast.ts        # Toast 通知
+  ├── hooks/                  # 自定义 Hooks
+  │   ├── use-clipboard.ts    # 剪贴板操作
+  │   ├── use-formatter.ts    # 格式化操作
+  │   └── use-mobile.ts       # 移动端检测
 ├── lib/
 │   ├── data-forge/         # 核心逻辑
 │   │   ├── parsers.ts      # 数据解析器
@@ -151,9 +150,6 @@ data-forge/
 ### 代码检查
 
 ```bash
-# ESLint
-pnpm lint
-
 # TypeScript 类型检查
 pnpm exec tsc --noEmit
 ```

@@ -256,7 +256,7 @@ export function Toolbar({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9" asChild>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/Ylemir/DataForge" target="_blank" rel="noopener noreferrer">
                 <Github className="h-3.5 w-3.5 md:h-4 md:w-4" />
               </a>
             </Button>
