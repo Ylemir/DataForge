@@ -238,7 +238,11 @@ export function queryData(data: unknown, path: string): { success: boolean; data
         current = (current as Record<string, unknown>)[part.value as string]
       }
     }
-    
+
+    if (current === undefined) {
+      return { success: false, data: undefined, error: `Path not found: ${path}` }
+    }
+
     return { success: true, data: current }
   } catch (error) {
     return {

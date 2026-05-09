@@ -61,9 +61,9 @@ export function OutputPanel({
     if (!queryResult) return ''
     if (!queryResult.success) return queryResult.error || '查询失败'
     try {
-      return typeof queryResult.data === 'string' 
-        ? queryResult.data 
-        : JSON.stringify(queryResult.data, null, 2)
+      if (typeof queryResult.data === 'string') return queryResult.data
+      const json = JSON.stringify(queryResult.data, null, 2)
+      return json ?? ''
     } catch {
       return String(queryResult.data)
     }

@@ -27,10 +27,12 @@ export function CodeEditor({
   const lineNumbersRef = React.useRef<HTMLDivElement>(null)
   const [lineCount, setLineCount] = React.useState(1)
 
+  const safeValue = typeof value === 'string' ? value : ''
+
   React.useEffect(() => {
-    const lines = value.split('\n').length
+    const lines = safeValue.split('\n').length
     setLineCount(Math.max(lines, 20))
-  }, [value])
+  }, [safeValue])
 
   const handleScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
     if (lineNumbersRef.current) {
@@ -44,7 +46,7 @@ export function CodeEditor({
       const textarea = e.currentTarget
       const start = textarea.selectionStart
       const end = textarea.selectionEnd
-      const newValue = value.substring(0, start) + '  ' + value.substring(end)
+      const newValue = safeValue.substring(0, start) + '  ' + safeValue.substring(end)
       onChange(newValue)
       // Set cursor position after tab
       requestAnimationFrame(() => {
@@ -80,7 +82,7 @@ export function CodeEditor({
         {/* Editor */}
         <textarea
           ref={textareaRef}
-          value={value}
+          value={safeValue}
           onChange={(e) => onChange(e.target.value)}
           onScroll={handleScroll}
           onKeyDown={handleKeyDown}
