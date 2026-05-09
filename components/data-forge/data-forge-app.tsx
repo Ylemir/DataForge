@@ -88,18 +88,22 @@ export function DataForgeApp() {
     }
   }
 
-  // Parse content when it changes
+  // Parse content when it changes (debounced for performance)
   React.useEffect(() => {
-    const result = parseContent(content, format)
-    if (result.error) {
-      setParseError(result.error)
-      setParsedData(null)
-      setTreeData(null)
-    } else {
-      setParseError(null)
-      setParsedData(result.data)
-      setTreeData(buildTree(result.data))
-    }
+    const timer = setTimeout(() => {
+      const result = parseContent(content, format)
+      if (result.error) {
+        setParseError(result.error)
+        setParsedData(null)
+        setTreeData(null)
+      } else {
+        setParseError(null)
+        setParsedData(result.data)
+        setTreeData(buildTree(result.data))
+      }
+    }, 250)
+
+    return () => clearTimeout(timer)
   }, [content, format])
 
   // Save to undo stack on content change

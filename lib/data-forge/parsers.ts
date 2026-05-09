@@ -1,8 +1,10 @@
 import type { DataFormat, ParsedData, TreeNode } from './types'
 import * as YAML from 'yaml'
 import * as TOML from '@iarna/toml'
-import { XMLParser, XMLBuilder } from 'fast-xml-parser'
+import { XMLBuilder, XMLParser, XMLValidator } from 'fast-xml-parser'
 import Papa from 'papaparse'
+
+type TomlRoot = TOML.JsonMap
 
 // Detect data format from content
 export function detectFormat(content: string): DataFormat {
@@ -21,7 +23,10 @@ export function detectFormat(content: string): DataFormat {
   
   // XML detection
   if (trimmed.startsWith('<?xml') || trimmed.startsWith('<')) {
-    return 'xml'
+    const validation = XMLValidator.validate(trimmed)
+    if (validation === true) {
+      return 'xml'
+    }
   }
   
   // TOML detection - check for typical TOML patterns
@@ -128,7 +133,7 @@ export function stringifyData(
         if (typeof data !== 'object' || data === null) {
           throw new Error('TOML requires an object at the root level')
         }
-        return TOML.stringify(data as Record<string, unknown>)
+        return TOML.stringify(data as unknown as TomlRoot)
         
       case 'xml':
         const builder = new XMLBuilder({
@@ -247,17 +252,25 @@ export function queryData(data: unknown, path: string): { success: boolean; data
 // Parse path into parts
 function parsePath(path: string): Array<{ type: 'key' | 'index'; value: string | number }> {
   const parts: Array<{ type: 'key' | 'index'; value: string | number }> = []
-  const regex = /\[(\d+)\]|\.?([^.\[\]]+)/g
-  let match
-  
-  while ((match = regex.exec(path)) !== null) {
+  const tokenRegex = /\[(\d+)\]|\[(["'])(.*?)\2\]|\.?([^\.\[\]]+)/g
+
+  let match: RegExpExecArray | null
+  while ((match = tokenRegex.exec(path)) !== null) {
     if (match[1] !== undefined) {
       parts.push({ type: 'index', value: parseInt(match[1], 10) })
-    } else if (match[2]) {
-      parts.push({ type: 'key', value: match[2] })
+      continue
+    }
+
+    if (match[3] !== undefined) {
+      parts.push({ type: 'key', value: match[3] })
+      continue
+    }
+
+    if (match[4]) {
+      parts.push({ type: 'key', value: match[4] })
     }
   }
-  
+
   return parts
 }
 
