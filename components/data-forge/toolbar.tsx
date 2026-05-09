@@ -38,6 +38,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import pkg from '@/package.json'
 import type { DataFormat } from '@/lib/data-forge/types'
 
 interface ToolbarProps {
@@ -76,6 +77,7 @@ export function Toolbar({
   className,
 }: ToolbarProps) {
   const { setTheme } = useTheme()
+  const version = pkg.version
 
   return (
     <header className={cn('flex h-14 items-center justify-between border-b border-border bg-card px-3 md:px-4', className)}>
@@ -85,8 +87,15 @@ export function Toolbar({
           <FileJson className="h-4 w-4 md:h-5 md:w-5" />
         </div>
         <div>
-          <h1 className="text-base md:text-lg font-semibold leading-none">DataForge</h1>
-          <p className="hidden sm:block text-xs text-muted-foreground">多格式数据转换工具</p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-base md:text-lg font-semibold leading-none">DataForge</h1>
+            {version ? (
+              <span className="hidden sm:inline-flex items-center rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium leading-none text-muted-foreground">
+                v{version}
+              </span>
+            ) : null}
+          </div>
+          <p className="hidden sm:block text-xs text-muted-foreground pt-1">多格式数据转换工具</p>
         </div>
       </div>
 
