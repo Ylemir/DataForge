@@ -60,6 +60,44 @@ export function TreeView({ data, selectedPath, onSelectPath, onCopyPath, onCopyV
     setExpandedNodes(new Set(['root']))
   }
 
+  // Auto-expand ancestor nodes when searching so matching results are visible
+  React.useEffect(() => {
+    if (!data || !searchQuery) return
+
+    const query = searchQuery.toLowerCase()
+    const ancestorsToExpand = new Set<string>()
+
+    const collectAncestors = (node: TreeNode): boolean => {
+      const selfMatch = node.key.toLowerCase().includes(query) ||
+        (typeof node.value === 'string' && node.value.toLowerCase().includes(query)) ||
+        (typeof node.value === 'number' && node.value.toString().includes(query))
+
+      const childMatch = node.children?.some((child) => collectAncestors(child)) || false
+
+      if (childMatch && node.children?.length) {
+        ancestorsToExpand.add(node.id)
+      }
+
+      return selfMatch || childMatch
+    }
+
+    collectAncestors(data)
+
+    setExpandedNodes((prev) => {
+      let changed = false
+      for (const id of ancestorsToExpand) {
+        if (!prev.has(id)) {
+          changed = true
+          break
+        }
+      }
+      if (!changed) return prev
+      const next = new Set(prev)
+      for (const id of ancestorsToExpand) next.add(id)
+      return next
+    })
+  }, [searchQuery, data])
+
   const matchesSearch = (node: TreeNode): boolean => {
     if (!searchQuery) return true
     const query = searchQuery.toLowerCase()

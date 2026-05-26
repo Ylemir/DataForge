@@ -19,7 +19,6 @@ export interface TreeNode {
 export interface QueryResult {
   success: boolean
   data: unknown
-  path: string
   error?: string
 }
 
@@ -34,21 +33,4 @@ export interface ConversionOptions {
   indent?: number
   csvDelimiter?: string
   xmlRootName?: string
-}
-
-export interface EditorState {
-  content: string
-  format: DataFormat
-  parsedData: unknown | null
-  error: string | null
-  isDirty: boolean
-}
-
-export interface AppState {
-  editor: EditorState
-  selectedPath: string | null
-  queryHistory: HistoryEntry[]
-  favorites: string[]
-  outputFormat: DataFormat
-  theme: 'light' | 'dark' | 'system'
 }

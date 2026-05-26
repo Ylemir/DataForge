@@ -2,6 +2,8 @@
 
 一个基于 Web 的多格式数据转换与查询工具，支持 JSON、YAML、TOML、XML、CSV 等常见数据格式的互转、编辑和查询。
 
+DataForge 以纯前端交互为主：你可以在浏览器里直接粘贴数据、转换格式、做路径查询、复制/下载结果，无需额外后端服务。
+
 ## 功能特性
 
 ### 格式转换
@@ -36,8 +38,8 @@
 
 | 类别 | 技术 |
 |------|------|
-| 框架 | Next.js 16 (App Router) |
-| 语言 | TypeScript 5.9 |
+| 框架 | Next.js 16（App Router） |
+| 语言 | TypeScript 6 |
 | UI 库 | React 19 |
 | 样式 | Tailwind CSS 4 |
 | 组件库 | shadcn/ui (New York style) |
@@ -66,7 +68,7 @@
 ```bash
 # 克隆项目
 git clone https://github.com/Ylemir/DataForge
-cd data-forge
+cd DataForge
 
 # 安装依赖
 pnpm install
@@ -104,10 +106,10 @@ data-forge/
 │   │   ├── output-panel.tsx     # 输出面板
 │   │   └── toolbar.tsx          # 工具栏
 │   └── ui/                 # shadcn/ui 组件
-  ├── hooks/                  # 自定义 Hooks
-  │   ├── use-clipboard.ts    # 剪贴板操作
-  │   ├── use-formatter.ts    # 格式化操作
-  │   └── use-mobile.ts       # 移动端检测
+├── hooks/                  # 自定义 Hooks
+│   ├── use-clipboard.ts    # 剪贴板操作
+│   ├── use-formatter.ts    # 格式化操作
+│   └── use-mobile.ts       # 移动端检测
 ├── lib/
 │   ├── data-forge/         # 核心逻辑
 │   │   ├── parsers.ts      # 数据解析器
@@ -147,6 +149,19 @@ data-forge/
 
 ## 开发
 
+### 常用命令
+
+```bash
+# 开发
+pnpm dev
+
+# 构建
+pnpm build
+
+# 启动（生产构建后）
+pnpm start
+```
+
 ### 代码检查
 
 ```bash
@@ -173,14 +188,14 @@ pnpm exec tsc --noEmit
 ### Docker
 
 ```dockerfile
-FROM node:18-alpine
+FROM node:24-alpine
 WORKDIR /app
 COPY . .
-RUN npm install -g pnpm && pnpm install && pnpm build
+RUN corepack enable && pnpm install && pnpm build
 EXPOSE 3000
 CMD ["pnpm", "start"]
 ```
 
 ## 许可证
 
-MIT License
+[MIT License](LICENSE)

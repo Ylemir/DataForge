@@ -16,7 +16,7 @@ import { parseContent, buildTree, queryData, stringifyData, putAtPath, deleteAtP
 import { sampleData } from '@/lib/data-forge/samples'
 import { useFormatter } from '@/hooks/use-formatter'
 import { useIsMobile } from '@/hooks/use-mobile'
-import type { DataFormat, TreeNode, HistoryEntry } from '@/lib/data-forge/types'
+import type { DataFormat, TreeNode, HistoryEntry, QueryResult } from '@/lib/data-forge/types'
 import type { ImperativePanelHandle } from 'react-resizable-panels'
 
 interface HistoryState {
@@ -42,7 +42,7 @@ export function DataForgeApp() {
   const [selectedPath, setSelectedPath] = React.useState<string | null>(null)
   const [selectedValue, setSelectedValue] = React.useState<unknown>(undefined)
   const [query, setQuery] = React.useState('')
-  const [queryResult, setQueryResult] = React.useState<{ success: boolean; data: unknown; error?: string } | null>(null)
+  const [queryResult, setQueryResult] = React.useState<QueryResult | null>(null)
   
   // Output panel tab state
   const [outputTab, setOutputTab] = React.useState('convert')
@@ -91,6 +91,7 @@ export function DataForgeApp() {
   // Parse content when it changes (debounced for performance)
   React.useEffect(() => {
     const timer = setTimeout(() => {
+      // Parse
       const result = parseContent(content, format)
       if (result.error) {
         setParseError(result.error)
@@ -101,25 +102,17 @@ export function DataForgeApp() {
         setParsedData(result.data)
         setTreeData(buildTree(result.data))
       }
+
+      // Save to undo stack
+      if (lastContentRef.current !== content) {
+        setUndoStack((prev) => [...prev.slice(-49), { content: lastContentRef.current, format }])
+        setRedoStack([])
+        lastContentRef.current = content
+      }
     }, 250)
 
     return () => clearTimeout(timer)
   }, [content, format])
-
-  // Save to undo stack on content change
-  const saveToUndoStack = React.useCallback(() => {
-    if (lastContentRef.current !== content) {
-      setUndoStack((prev) => [...prev.slice(-49), { content: lastContentRef.current, format }])
-      setRedoStack([])
-      lastContentRef.current = content
-    }
-  }, [content, format])
-
-  // Debounced save to undo stack
-  React.useEffect(() => {
-    const timer = setTimeout(saveToUndoStack, 500)
-    return () => clearTimeout(timer)
-  }, [content, saveToUndoStack])
 
   // Handle content change
   const handleContentChange = (newContent: string) => {
@@ -268,6 +261,10 @@ export function DataForgeApp() {
     toast.success('历史记录已清空')
   }
 
+  // Ref for keyboard shortcut handler to always invoke the latest callback
+  const executeQueryRef = React.useRef(handleExecuteQuery)
+  executeQueryRef.current = handleExecuteQuery
+
   // Handle put operation
   const handlePut = (path: string, valueStr: string) => {
     if (!parsedData) {
@@ -316,6 +313,12 @@ export function DataForgeApp() {
           e.preventDefault()
           handleUndo()
         }
+        return
+      }
+
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault()
+        executeQueryRef.current()
       }
     }
     window.addEventListener('keydown', handleKeyDown)

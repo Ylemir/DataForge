@@ -6,18 +6,19 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { CodeEditor } from './code-editor'
 import { stringifyData } from '@/lib/data-forge/parsers'
 import { useClipboard } from '@/hooks/use-clipboard'
-import type { DataFormat } from '@/lib/data-forge/types'
+import type { DataFormat, QueryResult } from '@/lib/data-forge/types'
+
+const noop = () => {}
 
 interface OutputPanelProps {
   data: unknown
   sourceFormat: DataFormat
   selectedPath: string | null
   selectedValue: unknown
-  queryResult: { success: boolean; data: unknown; error?: string } | null
+  queryResult: QueryResult | null
   activeTab?: string
   onTabChange?: (tab: string) => void
   className?: string
@@ -160,7 +161,7 @@ export function OutputPanel({
           <div className="flex-1 overflow-hidden p-2 md:p-4">
             <CodeEditor
               value={convertedOutput}
-              onChange={() => {}}
+              onChange={noop}
               format={outputFormat}
               readOnly
               className="h-full"
@@ -188,7 +189,7 @@ export function OutputPanel({
             {queryResult ? (
               <CodeEditor
                 value={queryOutput}
-                onChange={() => {}}
+                onChange={noop}
                 format="json"
                 readOnly
                 error={queryResult.success ? null : queryResult.error}
@@ -227,7 +228,7 @@ export function OutputPanel({
             {selectedPath ? (
               <CodeEditor
                 value={selectedOutput}
-                onChange={() => {}}
+                onChange={noop}
                 format="json"
                 readOnly
                 className="h-full"
