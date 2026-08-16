@@ -34,7 +34,8 @@ export function DataForgeApp() {
   // Editor state
   const [content, setContent] = React.useState(sampleData.json)
   const [format, setFormat] = React.useState<DataFormat>('json')
-  const [parsedData, setParsedData] = React.useState<unknown>(null)
+  // undefined 表示"无有效数据",与合法的 null 数据区分开
+  const [parsedData, setParsedData] = React.useState<unknown>(undefined)
   const [parseError, setParseError] = React.useState<string | null>(null)
   const [treeData, setTreeData] = React.useState<TreeNode | null>(null)
 
@@ -69,6 +70,7 @@ export function DataForgeApp() {
   const [undoStack, setUndoStack] = React.useState<HistoryState[]>([])
   const [redoStack, setRedoStack] = React.useState<HistoryState[]>([])
   const lastContentRef = React.useRef<string>(content)
+  const lastFormatRef = React.useRef<DataFormat>(format)
 
   // File input ref
   const fileInputRef = React.useRef<HTMLInputElement>(null)
@@ -95,7 +97,7 @@ export function DataForgeApp() {
       const result = parseContent(content, format)
       if (result.error) {
         setParseError(result.error)
-        setParsedData(null)
+        setParsedData(undefined)
         setTreeData(null)
       } else {
         setParseError(null)
@@ -103,12 +105,16 @@ export function DataForgeApp() {
         setTreeData(buildTree(result.data))
       }
 
-      // Save to undo stack
+      // Save to undo stack (记录变更前内容对应的格式,而非当前格式)
       if (lastContentRef.current !== content) {
-        setUndoStack((prev) => [...prev.slice(-49), { content: lastContentRef.current, format }])
+        setUndoStack((prev) => [
+          ...prev.slice(-49),
+          { content: lastContentRef.current, format: lastFormatRef.current },
+        ])
         setRedoStack([])
         lastContentRef.current = content
       }
+      lastFormatRef.current = format
     }, 250)
 
     return () => clearTimeout(timer)
@@ -119,12 +125,20 @@ export function DataForgeApp() {
     setContent(newContent)
   }
 
+  // 同步解析当前编辑器内容,避免使用防抖后的陈旧 parsedData
+  const parseCurrentContent = React.useCallback((): { data: unknown; ok: boolean } => {
+    const result = parseContent(content, format)
+    if (result.error) return { data: undefined, ok: false }
+    return { data: result.data, ok: true }
+  }, [content, format])
+
   // Handle format change
   const handleFormatChange = (newFormat: DataFormat) => {
-    // Try to convert current data to new format
-    if (parsedData) {
+    // Try to convert current data to new format (基于最新内容,而非防抖后的数据)
+    const { data, ok } = parseCurrentContent()
+    if (ok) {
       try {
-        const converted = stringifyData(parsedData, newFormat)
+        const converted = stringifyData(data, newFormat)
         setContent(converted)
         setFormat(newFormat)
         toast.success(`已转换为 ${newFormat.toUpperCase()} 格式`)
@@ -190,6 +204,7 @@ export function DataForgeApp() {
     setContent(previous.content)
     setFormat(previous.format)
     lastContentRef.current = previous.content
+    lastFormatRef.current = previous.format
   }
 
   // Handle redo
@@ -201,6 +216,7 @@ export function DataForgeApp() {
     setContent(next.content)
     setFormat(next.format)
     lastContentRef.current = next.content
+    lastFormatRef.current = next.format
   }
 
   // Handle path selection
@@ -212,7 +228,8 @@ export function DataForgeApp() {
 
   // Handle query execution
   const handleExecuteQuery = () => {
-    if (!parsedData) {
+    const { data, ok } = parseCurrentContent()
+    if (!ok) {
       toast.error('请先输入有效数据')
       return
     }
@@ -221,7 +238,7 @@ export function DataForgeApp() {
       return
     }
 
-    const result = queryData(parsedData, query)
+    const result = queryData(data, query)
     setQueryResult(result)
 
     // Add to history
@@ -267,16 +284,21 @@ export function DataForgeApp() {
 
   // Handle put operation
   const handlePut = (path: string, valueStr: string) => {
-    if (!parsedData) {
+    const { data, ok } = parseCurrentContent()
+    if (!ok) {
       toast.error('请先输入有效数据')
       return
     }
     try {
       const value = JSON.parse(valueStr)
-      const result = putAtPath(parsedData, path, value)
+      const result = putAtPath(data, path, value)
       if (result.success) {
         const newContent = stringifyData(result.data, format)
         setContent(newContent)
+        // 同步刷新选中节点的值,避免展示陈旧数据
+        if (selectedPath === path) {
+          setSelectedValue(value)
+        }
         toast.success('数据已更新')
       } else {
         toast.error(result.error || '更新失败')
@@ -288,30 +310,55 @@ export function DataForgeApp() {
 
   // Handle delete operation
   const handleDelete = (path: string) => {
-    if (!parsedData) {
+    const { data, ok } = parseCurrentContent()
+    if (!ok) {
       toast.error('请先输入有效数据')
       return
     }
-    const result = deleteAtPath(parsedData, path)
+    const result = deleteAtPath(data, path)
     if (result.success) {
       const newContent = stringifyData(result.data, format)
       setContent(newContent)
+      // 清除指向已删除节点(或其子节点)的选中状态
+      if (
+        selectedPath &&
+        (selectedPath === path ||
+          selectedPath.startsWith(path + '.') ||
+          selectedPath.startsWith(path + '['))
+      ) {
+        setSelectedPath(null)
+        setSelectedValue(undefined)
+      }
       toast.success('数据已删除')
     } else {
       toast.error(result.error || '删除失败')
     }
   }
 
+  // Refs for keyboard shortcuts to always invoke the latest callbacks
+  const undoRef = React.useRef(handleUndo)
+  undoRef.current = handleUndo
+  const redoRef = React.useRef(handleRedo)
+  redoRef.current = handleRedo
+
   // Keyboard shortcuts
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+        // 焦点在输入框/文本域内时,保留浏览器原生的撤销/重做行为
+        const target = e.target as HTMLElement | null
+        const isEditable =
+          target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement ||
+          (target !== null && target.isContentEditable)
+        if (isEditable) return
+
         if (e.shiftKey) {
           e.preventDefault()
-          handleRedo()
+          redoRef.current()
         } else {
           e.preventDefault()
-          handleUndo()
+          undoRef.current()
         }
         return
       }
@@ -323,7 +370,7 @@ export function DataForgeApp() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [undoStack, redoStack])
+  }, [])
 
   return (
     <TooltipProvider>

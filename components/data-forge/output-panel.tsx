@@ -50,7 +50,8 @@ export function OutputPanel({
   }, [sourceFormat])
 
   const convertedOutput = React.useMemo(() => {
-    if (!data) return ''
+    // undefined 表示无有效数据;0、false、""、null 都是合法数据
+    if (data === undefined) return ''
     try {
       return stringifyData(data, outputFormat)
     } catch (error) {

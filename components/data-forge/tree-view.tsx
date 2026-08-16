@@ -60,28 +60,47 @@ export function TreeView({ data, selectedPath, onSelectPath, onCopyPath, onCopyV
     setExpandedNodes(new Set(['root']))
   }
 
-  // Auto-expand ancestor nodes when searching so matching results are visible
-  React.useEffect(() => {
-    if (!data || !searchQuery) return
+  // 单次遍历预计算匹配集合(自身匹配或有子孙匹配的节点 id),
+  // 以及需要自动展开的祖先节点,避免每个节点渲染时递归检查造成 O(n²)
+  const searchResult = React.useMemo(() => {
+    if (!data || !searchQuery) return null
 
     const query = searchQuery.toLowerCase()
+    const visibleIds = new Set<string>()
     const ancestorsToExpand = new Set<string>()
 
-    const collectAncestors = (node: TreeNode): boolean => {
-      const selfMatch = node.key.toLowerCase().includes(query) ||
+    const visit = (node: TreeNode): boolean => {
+      const selfMatch =
+        node.key.toLowerCase().includes(query) ||
         (typeof node.value === 'string' && node.value.toLowerCase().includes(query)) ||
         (typeof node.value === 'number' && node.value.toString().includes(query))
 
-      const childMatch = node.children?.some((child) => collectAncestors(child)) || false
+      let childMatch = false
+      if (node.children) {
+        for (const child of node.children) {
+          if (visit(child)) childMatch = true
+        }
+      }
 
       if (childMatch && node.children?.length) {
         ancestorsToExpand.add(node.id)
       }
-
+      if (selfMatch || childMatch) {
+        visibleIds.add(node.id)
+      }
       return selfMatch || childMatch
     }
 
-    collectAncestors(data)
+    visit(data)
+    return { visibleIds, ancestorsToExpand }
+  }, [data, searchQuery])
+
+  const visibleIds = searchResult?.visibleIds ?? null
+
+  // Auto-expand ancestor nodes when searching so matching results are visible
+  React.useEffect(() => {
+    if (!searchResult) return
+    const { ancestorsToExpand } = searchResult
 
     setExpandedNodes((prev) => {
       let changed = false
@@ -96,16 +115,7 @@ export function TreeView({ data, selectedPath, onSelectPath, onCopyPath, onCopyV
       for (const id of ancestorsToExpand) next.add(id)
       return next
     })
-  }, [searchQuery, data])
-
-  const matchesSearch = (node: TreeNode): boolean => {
-    if (!searchQuery) return true
-    const query = searchQuery.toLowerCase()
-    if (node.key.toLowerCase().includes(query)) return true
-    if (typeof node.value === 'string' && node.value.toLowerCase().includes(query)) return true
-    if (typeof node.value === 'number' && node.value.toString().includes(query)) return true
-    return node.children?.some(matchesSearch) || false
-  }
+  }, [searchResult])
 
   const handleStartEdit = (path: string, value: unknown) => {
     setEditingPath(path)
@@ -183,7 +193,7 @@ export function TreeView({ data, selectedPath, onSelectPath, onCopyPath, onCopyV
                 onEdit={onEdit}
                 onDelete={onDelete}
                 searchQuery={searchQuery}
-                matchesSearch={matchesSearch}
+                visibleIds={visibleIds}
                 editingPath={editingPath}
                 editValue={editValue}
                 onStartEdit={handleStartEdit}
@@ -215,7 +225,8 @@ interface TreeNodeComponentProps {
   onEdit?: (path: string, value: unknown) => void
   onDelete?: (path: string) => void
   searchQuery: string
-  matchesSearch: (node: TreeNode) => boolean
+  /** 搜索时可见的节点 id 集合;null 表示未在搜索,全部可见 */
+  visibleIds: Set<string> | null
   editingPath: string | null
   editValue: string
   onStartEdit: (path: string, value: unknown) => void
@@ -236,7 +247,7 @@ function TreeNodeComponent({
   onEdit,
   onDelete,
   searchQuery,
-  matchesSearch,
+  visibleIds,
   editingPath,
   editValue,
   onStartEdit,
@@ -244,12 +255,11 @@ function TreeNodeComponent({
   onCancelEdit,
   onEditValueChange,
 }: TreeNodeComponentProps) {
-  const [isHovered, setIsHovered] = React.useState(false)
   const [isMenuOpen, setIsMenuOpen] = React.useState(false)
   const isExpanded = expandedNodes.has(node.id)
   const hasChildren = node.children && node.children.length > 0
   const isSelected = selectedPath === node.path
-  const isMatch = matchesSearch(node)
+  const isMatch = visibleIds === null || visibleIds.has(node.id)
   const { copyPath, copyValue } = useClipboard()
   
   const handleCopyPath = (e: React.MouseEvent) => {
@@ -331,8 +341,6 @@ function TreeNodeComponent({
           'hover:bg-tree-highlight',
           isSelected && 'bg-primary/10 text-primary'
         )}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
         {editingPath === node.path ? (
           <div className="flex items-center gap-1 flex-1 px-2 py-1.5 md:py-1" style={{ paddingLeft: `${level * 12 + 8}px` }}>

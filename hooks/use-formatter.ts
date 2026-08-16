@@ -23,8 +23,9 @@ interface UseFormatterReturn {
 export function useFormatter(options: UseFormatterOptions): UseFormatterReturn {
   const { data, format: sourceFormat, onFormat, onMinify, onError } = options
 
+  // undefined 表示"无有效数据";null 是合法的数据值(如 JSON 的 null)
   const isFormattable = React.useMemo(() => {
-    return data !== null && data !== undefined
+    return data !== undefined
   }, [data])
 
   const formatData = React.useCallback((): string | null => {
@@ -50,8 +51,13 @@ export function useFormatter(options: UseFormatterOptions): UseFormatterReturn {
       toast.error('请先输入有效数据')
       return null
     }
+    // YAML/TOML/CSV 依赖换行作为语法,删除换行会破坏数据
+    if (sourceFormat === 'yaml' || sourceFormat === 'toml' || sourceFormat === 'csv') {
+      toast.error(`${sourceFormat.toUpperCase()} 格式依赖换行,不支持压缩`)
+      return null
+    }
     try {
-      const minified = stringifyData(data, sourceFormat, { indent: 0 }).replace(/\n/g, '')
+      const minified = stringifyData(data, sourceFormat, { indent: 0 }).replace(/\n\s*/g, '')
       onMinify?.(minified)
       toast.success('压缩完成')
       return minified

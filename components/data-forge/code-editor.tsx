@@ -89,8 +89,9 @@ export function CodeEditor({
           readOnly={readOnly}
           placeholder={placeholder}
           spellCheck={false}
+          wrap="off"
           className={cn(
-            'flex-1 resize-none bg-transparent p-2 md:p-3 leading-5 md:leading-5 outline-none text-sm md:text-sm',
+            'flex-1 resize-none overflow-auto whitespace-pre bg-transparent p-2 md:p-3 leading-5 md:leading-5 outline-none text-sm md:text-sm',
             'placeholder:text-muted-foreground/50',
             readOnly && 'cursor-default'
           )}

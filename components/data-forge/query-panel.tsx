@@ -63,6 +63,8 @@ export function QueryPanel({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
+      // 中文/日文/韩文输入法组合期间的 Enter 是确认候选词,不应触发执行
+      if (e.nativeEvent.isComposing || e.keyCode === 229) return
       e.preventDefault()
       onExecute()
     }
