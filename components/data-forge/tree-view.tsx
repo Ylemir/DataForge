@@ -359,6 +359,7 @@ function TreeNodeComponent({
               onBlur={onSaveEdit}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
+                  if (e.nativeEvent.isComposing || e.keyCode === 229) return
                   e.preventDefault()
                   onSaveEdit()
                 } else if (e.key === 'Escape') {
@@ -415,11 +416,12 @@ function TreeNodeComponent({
         )}
         
         {/* Action menu */}
-        {(isHovered || isMenuOpen) && editingPath !== node.path && (
+        {editingPath !== node.path && (
           <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+
             <DropdownMenuTrigger asChild>
               <button
-                className="mr-2 flex h-7 w-7 md:h-6 md:w-6 items-center justify-center rounded hover:bg-muted"
+                className="mr-2 hidden h-7 w-7 items-center justify-center rounded hover:bg-muted group-hover:flex md:h-6 md:w-6"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
@@ -469,7 +471,7 @@ function TreeNodeComponent({
               onEdit={onEdit}
               onDelete={onDelete}
               searchQuery={searchQuery}
-              matchesSearch={matchesSearch}
+              visibleIds={visibleIds}
               editingPath={editingPath}
               editValue={editValue}
               onStartEdit={onStartEdit}
