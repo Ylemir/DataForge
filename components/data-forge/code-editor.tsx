@@ -41,7 +41,12 @@ export function CodeEditor({
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Tab') {
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      e.currentTarget.blur()
+      return
+    }
+    if (e.key === 'Tab' && !readOnly && !e.shiftKey) {
       e.preventDefault()
       const textarea = e.currentTarget
       const start = textarea.selectionStart

@@ -158,6 +158,12 @@ export function DataForgeApp() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    const maxFileSize = 5 * 1024 * 1024
+    if (file.size > maxFileSize) {
+      toast.error('文件过大,请输入不超过 5 MB 的文本文件')
+      e.target.value = ''
+      return
+    }
 
     const reader = new FileReader()
     reader.onload = (event) => {

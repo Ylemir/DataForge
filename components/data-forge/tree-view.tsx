@@ -32,6 +32,7 @@ export function TreeView({ data, selectedPath, onSelectPath, onCopyPath, onCopyV
   const [expandedNodes, setExpandedNodes] = React.useState<Set<string>>(new Set(['root']))
   const [editingPath, setEditingPath] = React.useState<string | null>(null)
   const [editValue, setEditValue] = React.useState('')
+  const saveInProgressRef = React.useRef(false)
 
   const toggleNode = (nodeId: string) => {
     setExpandedNodes((prev) => {
@@ -126,11 +127,14 @@ export function TreeView({ data, selectedPath, onSelectPath, onCopyPath, onCopyV
   }
 
   const handleSaveEdit = () => {
-    if (editingPath && onSave) {
-      onSave(editingPath, editValue)
-    }
+    if (saveInProgressRef.current) return
+    saveInProgressRef.current = true
+    if (editingPath && onSave) onSave(editingPath, editValue)
     setEditingPath(null)
     setEditValue('')
+    requestAnimationFrame(() => {
+      saveInProgressRef.current = false
+    })
   }
 
   const handleCancelEdit = () => {

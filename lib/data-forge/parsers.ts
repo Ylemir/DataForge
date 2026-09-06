@@ -36,6 +36,17 @@ interface DetectionResult {
   format: DataFormat
   /** Pre-parsed data from detection to avoid re-parsing in parseContent */
   data?: unknown
+  error?: string
+}
+
+const DANGEROUS_KEYS = new Set(['__proto__', 'prototype', 'constructor'])
+
+function isSafeKey(value: string): boolean {
+  return value.length > 0 && !DANGEROUS_KEYS.has(value)
+}
+
+function hasOwn(object: object, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(object, key)
 }
 
 // Detect data format from content
@@ -252,22 +263,23 @@ export function queryData(data: unknown, path: string): QueryResult {
     }
     
     // Simple path traversal
-    const parts = parsePath(normalizedPath)
+    const parsedPath = parsePath(normalizedPath)
+    if (!parsedPath.success) return { success: false, data: undefined, error: parsedPath.error }
     let current = data
     
-    for (const part of parts) {
+    for (const part of parsedPath.parts) {
       if (current === null || current === undefined) {
         return { success: false, data: undefined, error: `Path not found: ${path}` }
       }
       
       if (part.type === 'index') {
-        if (!Array.isArray(current)) {
-          return { success: false, data: undefined, error: `Cannot index non-array at ${part.value}` }
+        if (!Array.isArray(current) || Number(part.value) < 0 || Number(part.value) >= current.length) {
+          return { success: false, data: undefined, error: `Path not found: ${path}` }
         }
         current = current[part.value as number]
       } else {
-        if (typeof current !== 'object') {
-          return { success: false, data: undefined, error: `Cannot access property on non-object at ${part.value}` }
+        if (typeof current !== 'object' || current === null || !hasOwn(current, part.value as string)) {
+          return { success: false, data: undefined, error: `Path not found: ${path}` }
         }
         current = (current as Record<string, unknown>)[part.value as string]
       }
@@ -288,28 +300,35 @@ export function queryData(data: unknown, path: string): QueryResult {
 }
 
 // Parse path into parts
-function parsePath(path: string): Array<{ type: 'key' | 'index'; value: string | number }> {
-  const parts: Array<{ type: 'key' | 'index'; value: string | number }> = []
-  const tokenRegex = /\[(\d+)\]|\[(["'])(.*?)\2\]|\.?([^\.\[\]]+)/g
+type PathPart = { type: 'key' | 'index'; value: string | number }
 
+type ParsedPath =
+  | { success: true; parts: PathPart[] }
+  | { success: false; error: string }
+
+function parsePath(path: string): ParsedPath {
+  if (!path.trim()) return { success: false, error: 'Invalid path' }
+  const parts: PathPart[] = []
+  const tokenRegex = /(?:^|\.)([^.\[\]]+)|\[(\d+)\]|\[(?:"([^"\]]+)"|'([^'\]]+)')\]/g
+  let cursor = 0
   let match: RegExpExecArray | null
+
   while ((match = tokenRegex.exec(path)) !== null) {
-    if (match[1] !== undefined) {
-      parts.push({ type: 'index', value: parseInt(match[1], 10) })
-      continue
-    }
-
-    if (match[3] !== undefined) {
-      parts.push({ type: 'key', value: match[3] })
-      continue
-    }
-
-    if (match[4]) {
-      parts.push({ type: 'key', value: match[4] })
+    if (match.index !== cursor) return { success: false, error: 'Invalid path syntax' }
+    cursor = tokenRegex.lastIndex
+    if (match[2] !== undefined) {
+      parts.push({ type: 'index', value: Number(match[2]) })
+    } else {
+      const key = match[1] ?? match[3] ?? match[4]
+      if (!key || !isSafeKey(key)) return { success: false, error: 'Unsafe or empty path key' }
+      parts.push({ type: 'key', value: key })
     }
   }
 
-  return parts
+  if (cursor !== path.length || parts.length === 0) {
+    return { success: false, error: 'Invalid path syntax' }
+  }
+  return { success: true, parts }
 }
 
 // Handle wildcard queries
@@ -350,23 +369,21 @@ function navigateToParent(
   path: string
 ): { success: true; data: PathTarget } | { success: false; error: string } {
   const normalizedPath = path.replace(/^\$\.?/, '').replace(/^\./, '')
-  const parts = parsePath(normalizedPath)
-
-  if (parts.length === 0) {
-    return { success: false, error: 'Invalid path' }
-  }
+  const parsedPath = parsePath(normalizedPath)
+  if (!parsedPath.success) return parsedPath
+  const parts = parsedPath.parts
 
   let current: unknown = root
   for (let i = 0; i < parts.length - 1; i++) {
     const part = parts[i]
     if (part.type === 'index') {
-      if (!Array.isArray(current)) {
-        return { success: false, error: 'Cannot index non-array' }
+      if (!Array.isArray(current) || Number(part.value) < 0 || Number(part.value) >= current.length) {
+        return { success: false, error: 'Path not found' }
       }
       current = current[part.value as number]
     } else {
-      if (typeof current !== 'object' || current === null) {
-        return { success: false, error: 'Cannot access property on non-object' }
+      if (typeof current !== 'object' || current === null || !hasOwn(current, part.value as string)) {
+        return { success: false, error: 'Path not found' }
       }
       current = (current as Record<string, unknown>)[part.value as string]
     }
@@ -391,8 +408,8 @@ export function putAtPath(data: unknown, path: string, value: unknown): { succes
     const { parent, lastPart } = nav.data
 
     if (lastPart.type === 'index') {
-      if (!Array.isArray(parent)) {
-        return { success: false, data: cloned, error: 'Cannot index non-array' }
+      if (!Array.isArray(parent) || Number(lastPart.value) < 0 || Number(lastPart.value) >= parent.length) {
+        return { success: false, data: cloned, error: 'Array index out of bounds' }
       }
       ;(parent as unknown[])[lastPart.value as number] = value
     } else {
